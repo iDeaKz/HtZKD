@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8050:8050"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - DATA_PATH=/usr/src/app/app/data/
+      - GEOJSON_PATH=/usr/src/app/app/data/geojson/
+      - API_KEY=${API_KEY}
+      - PORT=${PORT}
+      - HOST=${HOST}
+      - DATABASE_URL=${DATABASE_URL}
+    volumes:
+      - /mnt/b/project_plot/HtZkaediHealingSolution:/usr/src/app
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:15.3
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=htzkhealingdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/b/project_plot/HtZkaediHealingSolution/postgres_data
+      o: bind
