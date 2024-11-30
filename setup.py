@@ -38,6 +38,9 @@ setup(
         "celery==5.3.1"
         "redis==4.5.5"
         "bleak>=0.22.0"
+        "psutil>=5.9.0"
+        "openpyxl>=3.1.2"
+
         
 
     ],
