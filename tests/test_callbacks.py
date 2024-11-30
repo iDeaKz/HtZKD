@@ -1,5 +1,3 @@
-# tests/test_callbacks.py
-
 import pytest
 from dash.testing.application_runners import import_app
 
@@ -22,20 +20,17 @@ def test_layout(dash_duo, dash_app):
 
 def test_about_modal_toggle(dash_duo, dash_app):
     dash_duo.start_server(dash_app)
-    
+
     about_button = dash_duo.find_element('#about-button')
     about_modal = dash_duo.find_element('#about-modal')
     close_button = dash_duo.find_element('#close-about')
-    
-    # Initially, modal should be closed
-    assert not about_modal.get_attribute('class').contains('show')
-    
-    # Click the about button to open the modal
+
+    assert 'show' not in about_modal.get_attribute('class')
+
     about_button.click()
     dash_duo.wait_for_element('#about-modal.show')
-    assert about_modal.get_attribute('class').contains('show')
-    
-    # Click the close button to close the modal
+    assert 'show' in about_modal.get_attribute('class')
+
     close_button.click()
-    dash_duo.wait_for_element('#about-modal', timeout=1, log_level='warn')
-    assert not about_modal.get_attribute('class').contains('show')
+    dash_duo.wait_for_element('#about-modal:not(.show)', timeout=2)
+    assert 'show' not in about_modal.get_attribute('class')
