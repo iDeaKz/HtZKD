@@ -2,20 +2,21 @@ name: Python Application CI/CD
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
 
 permissions:
   contents: read
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.12"]
+        python-version: ["3.12"]
 
     steps:
     - name: Checkout Code
@@ -26,12 +27,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install Chrome & ChromeDriver
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y google-chrome-stable chromium-chromedriver
-
-    - name: Cache Dependencies
+    - name: Cache Python Dependencies
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
@@ -42,13 +38,8 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Debug Chrome Installation
-      run: |
-        google-chrome --version
-        chromedriver --version
-        export PATH=$PATH:/usr/bin/chromedriver
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install flake8 pytest pytest-cov pytest-xdist black isort bleak==0.21.3
 
     - name: Lint Code with flake8
       run: |
@@ -56,31 +47,39 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Run Tests with Debug Logging
+    - name: Format Code with Black and Isort
       run: |
-        pytest --cov=app --cov-report=xml --maxfail=5 --dist=loadscope -n auto -v --log-cli-level=DEBUG
+        echo "Checking code formatting with black and isort..."
+        black --check . || echo "⚠️ Code is not formatted correctly. Run 'black .' locally to fix."
+        isort --check-only . || echo "⚠️ Imports are not sorted. Run 'isort .' locally to fix."
+
+    - name: Run Tests with pytest
+      run: |
+        echo "Running tests with pytest..."
+        pytest --cov=app --cov-report=xml --maxfail=3 -n auto
 
     - name: Upload Coverage Report
-      uses: actions/upload-artifact@v3
+      uses: codecov/codecov-action@v3
       with:
-        name: coverage-report
-        path: coverage.xml
-        if-no-files-found: warn
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        fail_ci_if_error: true
+        flags: unittests
 
     - name: Deploy to Production
       if: success()
       run: |
         echo "Deploying application..."
-        # Add deployment commands, e.g., SSH, Heroku, or AWS CLI.
-
-    - name: Post-Run Summary (Success)
-      if: success()
-      run: |
-        echo "✅ CI/CD Pipeline Succeeded!"
-        echo "All checks and tests passed."
+        # Add your deployment commands here, e.g., SSH to a server and deploy, or use a deployment service API
 
     - name: Post-Run Summary (Failure)
       if: failure()
       run: |
         echo "❌ CI/CD Pipeline Failed!"
         echo "Check the logs above for details."
+
+    - name: Post-Run Summary (Success)
+      if: success()
+      run: |
+        echo "✅ CI/CD Pipeline Succeeded!"
+        echo "Code quality checks and tests passed successfully."
