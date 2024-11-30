@@ -1,0 +1,59 @@
+import pytest
+from dash.testing.composite import DashComposite
+from dash.testing.application_runners import import_app
+
+@pytest.fixture
+def dash_duo(request, dash_thread_server, tmpdir) -> DashComposite:
+    """
+    Custom fixture for Dash testing with headless Chrome.
+    """
+    with DashComposite(
+        dash_thread_server,
+        browser="chrome",  # Ensure Chrome is used
+        headless=True,  # Enable headless mode
+        options={"args": ["--no-sandbox", "--disable-dev-shm-usage"]},
+        download_path=tmpdir.mkdir("download").strpath
+    ) as dc:
+        yield dc
+
+@pytest.fixture
+def dash_app():
+    """
+    Import and provide the Dash app for testing.
+    """
+    app = import_app('app')
+    return app
+
+def test_layout(dash_duo, dash_app):
+    """
+    Verify the app layout elements.
+    """
+    dash_duo.start_server(dash_app)
+    dash_duo.wait_for_text_to_equal('H(t) Zkaedi Healing Solution Dashboard', 'h1')
+    assert dash_duo.find_element('#patient-dropdown')
+    assert dash_duo.find_element('#date-picker')
+    assert dash_duo.find_element('#about-button')
+    assert dash_duo.find_element('#healing-progress-graph')
+    assert dash_duo.find_element('#geographical-map')
+
+def test_about_modal_toggle(dash_duo, dash_app):
+    """
+    Test toggling of the About modal.
+    """
+    dash_duo.start_server(dash_app)
+    about_button = dash_duo.find_element('#about-button')
+    about_modal = dash_duo.find_element('#about-modal')
+    close_button = dash_duo.find_element('#close-about')
+
+    # Initially, modal should be closed
+    assert not about_modal.get_attribute('class').contains('show')
+
+    # Click the about button to open the modal
+    about_button.click()
+    dash_duo.wait_for_element('#about-modal.show')
+    assert about_modal.get_attribute('class').contains('show')
+
+    # Click the close button to close the modal
+    close_button.click()
+    dash_duo.wait_for_element('#about-modal', timeout=1, log_level='warn')
+    assert not about_modal.get_attribute('class').contains('show')
