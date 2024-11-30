@@ -28,6 +28,7 @@ setup(
         "psycopg2-binary==2.9.6"
         "alembic==1.11.1"
         "flask-login>=0.6.3"
+        "werkzeug>=2.3.6"
         "bcrypt==4.0.1"
         "python-dotenv==1.0.0"
         "pytest==7.3.1"
@@ -36,7 +37,7 @@ setup(
         "celery==5.3.1"
         "redis==4.5.5"
         "bleak>=0.22.0"
-        "werkzeug>=2.3.6"
+        
 
     ],
     extras_require={
