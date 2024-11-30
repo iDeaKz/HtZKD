@@ -66,6 +66,12 @@ jobs:
         fail_ci_if_error: true
         flags: unittests
 
+    - name: Deploy to Production
+      if: success()
+      run: |
+        echo "Deploying application..."
+        # Add your deployment commands here, e.g., SSH to a server and deploy, or use a deployment service API
+
     - name: Post-Run Summary (Failure)
       if: failure()
       run: |
