@@ -25,7 +25,7 @@ jobs:
     - name: Set Up Python
       uses: actions/setup-python@v3
       with:
-        python-version: "${{ matrix.python-version }}"
+        python-version: ${{ matrix.python-version }}
 
     - name: Cache Python Dependencies
       uses: actions/cache@v3
@@ -40,16 +40,14 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install flake8 pytest pytest-cov pytest-xdist black isort
-      continue-on-error: false
 
     - name: Lint Code with flake8
       run: |
         echo "Running flake8 for code linting..."
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      continue-on-error: true
 
-    - name: Format Code with Black and Sort Imports with Isort
+    - name: Format Code with Black and Isort
       run: |
         echo "Checking code formatting with black and isort..."
         black --check . || echo "⚠️ Code is not formatted correctly. Run 'black .' locally to fix."
@@ -59,7 +57,6 @@ jobs:
       run: |
         echo "Running tests with pytest..."
         pytest --cov=app --cov-report=xml --maxfail=3 -n auto
-      continue-on-error: true
 
     - name: Upload Coverage Report
       uses: codecov/codecov-action@v3
@@ -68,7 +65,6 @@ jobs:
         files: ./coverage.xml
         fail_ci_if_error: true
         flags: unittests
-      continue-on-error: true
 
     - name: Post-Run Summary
       if: failure()
