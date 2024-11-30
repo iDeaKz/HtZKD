@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.12.7"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
     - name: Checkout Code
@@ -27,27 +27,31 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
-
-    - name: Install Dependencies
+    - name: Install Chrome and ChromeDriver
       run: |
-        python -m pip install --upgrade pip setuptools
-        pip install -r requirements.txt
-        pip install flake8 pytest pytest-cov pytest-xdist
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+        CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+        wget -N "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
+        unzip chromedriver_linux64.zip -d /usr/local/bin/
 
-    - name: Lint Code with flake8
+    - name: Install Python Dependencies
       run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt pytest pytest-cov pytest-xdist dash[testing]
 
-    - name: Run Tests with pytest
-      run: pytest --cov=app --cov-report=xml --maxfail=3 --dist=loadscope -n auto
-      env:
-        PYTHONPATH: ${{ env.PYTHONPATH }}
+    - name: Lint and Format Code
+      run: |
+        flake8 . --count --exit-zero --max-line-length=127 --statistics
+        black --check . || echo "Run 'black .' locally to fix formatting."
+        isort --check-only . || echo "Run 'isort .' locally to fix import ordering."
 
-    - name: Save Coverage Report
-      if: always()
+    - name: Run Tests
+      run: |
+        pytest --cov=app --cov-report=xml --maxfail=5 --dist=loadscope -n 2 -v
+
+    - name: Upload Coverage Report
       uses: actions/upload-artifact@v3
       with:
         name: coverage-report
