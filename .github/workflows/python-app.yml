@@ -66,11 +66,13 @@ jobs:
         fail_ci_if_error: true
         flags: unittests
 
-    - name: Post-Run Summary
+    - name: Post-Run Summary (Failure)
       if: failure()
       run: |
         echo "❌ CI/CD Pipeline Failed!"
         echo "Check the logs above for details."
+
+    - name: Post-Run Summary (Success)
       if: success()
       run: |
         echo "✅ CI/CD Pipeline Succeeded!"
