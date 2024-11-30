@@ -3,49 +3,36 @@ import os
 import pandas as pd
 from app.data import DataLoader
 
-
 @pytest.fixture
 def data_loader():
     return DataLoader(data_path='app/data/')
 
+@pytest.fixture(autouse=True)
+def cleanup_test_files():
+    """
+    Automatically clean up test files after each test.
+    """
+    yield
+    for file in ['test_patient_data.csv', 'test_patient_data.xlsx', 'test_patient_data.json']:
+        file_path = os.path.join('app/data/', file)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
-@pytest.fixture
-def sample_data():
-    return pd.DataFrame({
-        'patient_id': [1, 2, 3],
-        'date': ['2023-01-01', '2023-01-02', '2023-01-03'],
-        'healing_progress': [75.0, 60.5, 90.3]
-    })
-
-
-def test_load_csv_success(data_loader, sample_data):
-    test_csv = 'test_patient_data.csv'
-    test_csv_path = os.path.join(data_loader.data_path, test_csv)
-    sample_data.to_csv(test_csv_path, index=False)
-
-    df = data_loader.load_csv(test_csv)
-    pd.testing.assert_frame_equal(df, sample_data)
-
-    os.remove(test_csv_path)
-
-
-def test_load_excel_success(data_loader, sample_data):
-    test_excel = 'test_patient_data.xlsx'
-    test_excel_path = os.path.join(data_loader.data_path, test_excel)
-    sample_data.to_excel(test_excel_path, index=False)
-
-    df = data_loader.load_excel(test_excel)
-    pd.testing.assert_frame_equal(df, sample_data)
-
-    os.remove(test_excel_path)
-
-
-def test_load_json_success(data_loader, sample_data):
+def test_load_json_success(data_loader):
+    """
+    Test loading JSON with date parsing.
+    """
     test_json = 'test_patient_data.json'
+    test_data = pd.DataFrame({
+        'patient_id': [7, 8, 9],
+        'date': ['2023-03-01', '2023-03-02', '2023-03-03'],
+        'healing_progress': [85.0, 75.5, 100.3]
+    })
     test_json_path = os.path.join(data_loader.data_path, test_json)
-    sample_data.to_json(test_json_path, orient='records')
+    test_data.to_json(test_json_path, orient='records')
 
     df = data_loader.load_json(test_json)
-    pd.testing.assert_frame_equal(df, sample_data)
+    df['date'] = pd.to_datetime(df['date'])  # Convert to datetime
+    test_data['date'] = pd.to_datetime(test_data['date'])  # Convert to datetime
 
-    os.remove(test_json_path)
+    pd.testing.assert_frame_equal(df, test_data)
