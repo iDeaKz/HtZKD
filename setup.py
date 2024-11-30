@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="HtZkaediHealingSolution",
     version="0.1.0",
-    author="Your Name",
+    author="zkaedi",
     author_email="your.email@example.com",
     description="Interactive dashboard for monitoring patient healing processes.",
     long_description=long_description,
@@ -27,7 +27,7 @@ setup(
         "SQLAlchemy==1.4.47"
         "psycopg2-binary==2.9.6"
         "alembic==1.11.1"
-        "Flask-Login==0.6.2"
+        "flask-login>=0.6.3"
         "bcrypt==4.0.1"
         "python-dotenv==1.0.0"
         "pytest==7.3.1"
@@ -36,6 +36,7 @@ setup(
         "celery==5.3.1"
         "redis==4.5.5"
         "bleak>=0.22.0"
+        "werkzeug>=2.3.6"
 
     ],
     extras_require={
