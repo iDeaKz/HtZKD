@@ -1,4 +1,3 @@
-# Core Dependencies
 dash==2.9.3
 dash-bootstrap-components==1.3.1
 flask==2.3.2
@@ -7,27 +6,16 @@ pandas==1.5.3
 numpy==1.24.3
 plotly==5.15.0
 requests==2.31.0
-
-# Database Dependencies
 SQLAlchemy==1.4.47
 psycopg2-binary==2.9.6
 alembic==1.11.1
-
-# Authentication Dependencies
 Flask-Login==0.6.2
 bcrypt==4.0.1
-
-# Environment Variables
 python-dotenv==1.0.0
-
-# Testing Dependencies
 pytest==7.3.1
 pytest-cov==4.0.0
 coverage==7.3.1
-
-# Optional Dependencies for Advanced Features
 celery==5.3.1
 redis==4.5.5
+bleak>=0.22.0
 
-# BLE Communication Alternative
-bleak==0.21.3
