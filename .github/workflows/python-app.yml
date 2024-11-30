@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.12.6"]
 
     steps:
     - name: Checkout Code
@@ -27,60 +27,26 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Cache Python Dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
 
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install flake8 pytest pytest-cov pytest-xdist black isort
-        if [[ ${{ matrix.python-version }} == '3.10' ]]; then pip install bleak==0.21.3; fi
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-xdist
 
-    - name: Lint Code with flake8
+    - name: Lint Code
       run: |
-        echo "Running flake8 for code linting..."
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Format Code with Black and Isort
-      run: |
-        echo "Checking code formatting with black and isort..."
-        black --check . || echo "⚠️ Code is not formatted correctly. Run 'black .' locally to fix."
-        isort --check-only . || echo "⚠️ Imports are not sorted. Run 'isort .' locally to fix."
-
     - name: Run Tests with pytest
-      run: |
-        echo "Running tests with pytest..."
-        pytest --cov=app --cov-report=xml --maxfail=3 -n auto
+      run: pytest --cov=app --cov-report=xml --maxfail=3 --dist=loadscope -n auto
 
-    - name: Upload Coverage Report
-      uses: codecov/codecov-action@v3
+    - name: Save Coverage Report
+      if: always()
+      uses: actions/upload-artifact@v3
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage.xml
-        fail_ci_if_error: true
-        flags: unittests
-
-    - name: Deploy to Production
-      if: success()
-      run: |
-        echo "Deploying application..."
-        # Add your deployment commands here, e.g., SSH to a server and deploy, or use a deployment service API
-
-    - name: Post-Run Summary (Failure)
-      if: failure()
-      run: |
-        echo "❌ CI/CD Pipeline Failed!"
-        echo "Check the logs above for details."
-
-    - name: Post-Run Summary (Success)
-      if: success()
-      run: |
-        echo "✅ CI/CD Pipeline Succeeded!"
-        echo "Code quality checks and tests passed successfully."
+        name: coverage-report
+        path: coverage.xml
