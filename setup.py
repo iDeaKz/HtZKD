@@ -16,6 +16,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,  # Includes files from MANIFEST.in
     install_requires=[
+        "dash[testing]==2.9.3"
         "dash==2.9.3"
         "dash-bootstrap-components==1.3.1"
         "flask>=2.3.2"
