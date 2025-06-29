@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Paint Studio - Advanced Graphics Application</title>
+    
+    <!-- Bootstrap CSS for responsive design -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Three.js for 3D graphics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/canvas.css">
+    <link rel="stylesheet" href="css/ui-components.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="assets/icons/paint-icon.svg" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+                3D Paint Studio
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="new-canvas">New Canvas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="open-file">Open</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="save-file">Save</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Export
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" data-format="png">PNG</a></li>
+                            <li><a class="dropdown-item" href="#" data-format="jpg">JPG</a></li>
+                            <li><a class="dropdown-item" href="#" data-format="obj">3D Model (OBJ)</a></li>
+                            <li><a class="dropdown-item" href="#" data-format="psd">Photoshop (PSD)</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <!-- Performance Monitor -->
+                <div class="navbar-text me-3">
+                    <small id="fps-counter">FPS: 60</small> |
+                    <small id="memory-usage">RAM: 45MB</small>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Left Sidebar - Tools -->
+            <div class="col-md-2 bg-light border-end">
+                <div class="tool-palette p-3">
+                    <h6>Brush Tools</h6>
+                    <div class="btn-group-vertical d-grid gap-2 mb-3">
+                        <button class="btn btn-outline-primary" id="brush-standard">Standard Brush</button>
+                        <button class="btn btn-outline-primary" id="brush-texture">Texture Brush</button>
+                        <button class="btn btn-outline-primary" id="brush-particle">Particle Brush</button>
+                        <button class="btn btn-outline-primary" id="brush-volumetric">3D Volumetric</button>
+                    </div>
+                    
+                    <h6>Brush Settings</h6>
+                    <div class="mb-3">
+                        <label for="brush-size" class="form-label">Size</label>
+                        <input type="range" class="form-range" id="brush-size" min="1" max="100" value="10">
+                        <span id="brush-size-value">10px</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="brush-opacity" class="form-label">Opacity</label>
+                        <input type="range" class="form-range" id="brush-opacity" min="0" max="100" value="100">
+                        <span id="brush-opacity-value">100%</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="brush-pressure" class="form-label">Pressure Sensitivity</label>
+                        <input type="checkbox" class="form-check-input" id="brush-pressure" checked>
+                    </div>
+                    
+                    <h6>Color Picker</h6>
+                    <input type="color" class="form-control form-control-color mb-2" id="color-picker" value="#ff0000">
+                    
+                    <!-- Color Palette -->
+                    <div class="color-palette">
+                        <div class="color-swatch" style="background-color: #ff0000;" data-color="#ff0000"></div>
+                        <div class="color-swatch" style="background-color: #00ff00;" data-color="#00ff00"></div>
+                        <div class="color-swatch" style="background-color: #0000ff;" data-color="#0000ff"></div>
+                        <div class="color-swatch" style="background-color: #ffff00;" data-color="#ffff00"></div>
+                        <div class="color-swatch" style="background-color: #ff00ff;" data-color="#ff00ff"></div>
+                        <div class="color-swatch" style="background-color: #00ffff;" data-color="#00ffff"></div>
+                        <div class="color-swatch" style="background-color: #ffffff;" data-color="#ffffff"></div>
+                        <div class="color-swatch" style="background-color: #000000;" data-color="#000000"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Canvas Area -->
+            <div class="col-md-8">
+                <div class="canvas-container position-relative">
+                    <!-- 3D Canvas -->
+                    <canvas id="canvas3d" class="main-canvas"></canvas>
+                    
+                    <!-- 2D Overlay Canvas for UI elements -->
+                    <canvas id="canvas2d" class="overlay-canvas"></canvas>
+                    
+                    <!-- Loading Indicator -->
+                    <div id="loading-indicator" class="position-absolute top-50 start-50 translate-middle">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading 3D Engine...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Error Display -->
+                    <div id="error-display" class="alert alert-danger position-absolute top-0 start-0 m-3 d-none">
+                        <strong>Error:</strong> <span id="error-message"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+                
+                <!-- Canvas Controls -->
+                <div class="canvas-controls p-2 bg-light border-top">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-secondary" id="undo-btn">
+                                    <i class="fas fa-undo"></i> Undo
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" id="redo-btn">
+                                    <i class="fas fa-redo"></i> Redo
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" id="clear-canvas">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="zoom-controls">
+                                <button class="btn btn-sm btn-outline-secondary" id="zoom-out">-</button>
+                                <span id="zoom-level">100%</span>
+                                <button class="btn btn-sm btn-outline-secondary" id="zoom-in">+</button>
+                                <button class="btn btn-sm btn-outline-secondary" id="reset-view">Reset View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Sidebar - Layers and Properties -->
+            <div class="col-md-2 bg-light border-start">
+                <div class="layer-panel p-3">
+                    <h6>Layers</h6>
+                    <div class="layers-list" id="layers-list">
+                        <div class="layer-item active" data-layer="0">
+                            <div class="layer-preview"></div>
+                            <div class="layer-info">
+                                <span class="layer-name">Background</span>
+                                <div class="layer-controls">
+                                    <input type="range" class="layer-opacity" min="0" max="100" value="100">
+                                    <button class="btn btn-sm btn-outline-danger layer-delete">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-primary w-100 mt-2" id="add-layer">Add Layer</button>
+                    
+                    <hr>
+                    
+                    <h6>Lighting</h6>
+                    <div class="mb-2">
+                        <label for="ambient-light" class="form-label">Ambient</label>
+                        <input type="range" class="form-range" id="ambient-light" min="0" max="100" value="30">
+                    </div>
+                    <div class="mb-2">
+                        <label for="directional-light" class="form-label">Directional</label>
+                        <input type="range" class="form-range" id="directional-light" min="0" max="100" value="70">
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Effects</h6>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enable-shadows">
+                        <label class="form-check-label" for="enable-shadows">Dynamic Shadows</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enable-particles">
+                        <label class="form-check-label" for="enable-particles">Particle Effects</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enable-physics">
+                        <label class="form-check-label" for="enable-physics">Physics Simulation</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Input (Hidden) -->
+    <input type="file" id="file-input" accept=".png,.jpg,.jpeg,.psd,.obj" class="d-none">
+    
+    <!-- WebGL Shader Scripts -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec3 position;
+        attribute vec3 normal;
+        attribute vec2 uv;
+        
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+        uniform mat3 normalMatrix;
+        
+        varying vec3 vNormal;
+        varying vec2 vUv;
+        varying vec3 vPosition;
+        
+        void main() {
+            vNormal = normalize(normalMatrix * normal);
+            vUv = uv;
+            vPosition = position;
+            
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    </script>
+    
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision mediump float;
+        
+        varying vec3 vNormal;
+        varying vec2 vUv;
+        varying vec3 vPosition;
+        
+        uniform vec3 color;
+        uniform float opacity;
+        uniform vec3 lightDirection;
+        uniform float ambientIntensity;
+        
+        void main() {
+            vec3 normal = normalize(vNormal);
+            float lightIntensity = max(dot(normal, normalize(lightDirection)), 0.0) + ambientIntensity;
+            
+            vec3 finalColor = color * lightIntensity;
+            gl_FragColor = vec4(finalColor, opacity);
+        }
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Main Application Scripts -->
+    <script src="js/error-handler.js"></script>
+    <script src="js/webgl-utils.js"></script>
+    <script src="js/canvas3d.js"></script>
+    <script src="js/brush-engine.js"></script>
+    <script src="js/ui-manager.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
