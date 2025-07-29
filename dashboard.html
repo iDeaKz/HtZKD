@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LivePrecisionCalculator Dashboard - Ultimate Edition</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .header {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .calculation-panel {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .visualization-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .metrics-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+        }
+        
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-display {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        
+        .error-display {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00ff88;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .three-container {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+        
+        .connection-dot.connected {
+            background: #44ff44;
+        }
+        
+        .healing-suite {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .healing-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .healing-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: heartbeat 1.5s infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        
+        .currency-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .currency-selector select {
+            flex: 1;
+        }
+        
+        .precision-display {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>LivePrecisionCalculator™</h1>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>Quantum Precision Active</span>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h3>Calculator Controls</h3>
+            
+            <div class="connection-status">
+                <div class="connection-dot" id="wsStatus"></div>
+                <span id="wsStatusText">Connecting...</span>
+            </div>
+            
+            <div class="input-group">
+                <label for="operation">Operation</label>
+                <select id="operation">
+                    <option value="add">Addition (+)</option>
+                    <option value="subtract">Subtraction (-)</option>
+                    <option value="multiply">Multiplication (×)</option>
+                    <option value="divide">Division (÷)</option>
+                    <option value="power">Power (^)</option>
+                    <option value="sqrt">Square Root (√)</option>
+                    <option value="abs">Absolute Value (|x|)</option>
+                    <option value="negate">Negate (-x)</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="operand1">First Operand</label>
+                <input type="text" id="operand1" placeholder="Enter high-precision number" value="123.456789012345678901234567890">
+            </div>
+            
+            <div class="input-group">
+                <label for="operand2">Second Operand (if required)</label>
+                <input type="text" id="operand2" placeholder="Enter second number" value="987.654321098765432109876543210">
+            </div>
+            
+            <div class="currency-selector">
+                <select id="fromCurrency">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="BTC">BTC</option>
+                    <option value="ETH">ETH</option>
+                </select>
+                <select id="toCurrency">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="BTC">BTC</option>
+                    <option value="ETH">ETH</option>
+                </select>
+            </div>
+            
+            <button class="button" id="calculateBtn">Calculate with Quantum Precision</button>
+            
+            <div id="resultDisplay"></div>
+            
+            <div class="precision-display">
+                <strong>Precision Level:</strong> 60 decimal places<br>
+                <strong>Rounding:</strong> ROUND_HALF_EVEN
+            </div>
+            
+            <div class="healing-suite">
+                <div class="healing-status">
+                    <strong>The Healing Suite™</strong>
+                    <div class="healing-indicator"></div>
+                </div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">
+                    ✓ Error Detection Active<br>
+                    ✓ Auto-Mitigation Enabled<br>
+                    ✓ Learning Algorithms Running<br>
+                    ✓ Self-Healing Infrastructure
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Calculation Panel -->
+            <div class="calculation-panel">
+                <h3>Real-Time Calculation Stream</h3>
+                <div id="calculationStream" style="height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; font-family: 'Courier New', monospace;">
+                    <div style="color: #00ff88;">LivePrecisionCalculator™ Ready...</div>
+                    <div style="color: #888;">Quantum-level precision initialized</div>
+                    <div style="color: #888;">The Healing Suite™ active</div>
+                    <div style="color: #888;">WebSocket connection establishing...</div>
+                </div>
+            </div>
+            
+            <!-- 3D Visualization Panel -->
+            <div class="visualization-panel">
+                <h3>3D Financial Data Visualization</h3>
+                <div class="three-container" id="threeContainer"></div>
+            </div>
+            
+            <!-- Metrics Panel -->
+            <div class="metrics-panel">
+                <h3>Performance Analytics</h3>
+                <div class="chart-container">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let wsConnection = null;
+        let scene, camera, renderer, cube, dataPoints = [];
+        let metricsChart;
+        let calculationHistory = [];
+        let systemMetrics = {
+            calculations: 0,
+            errors: 0,
+            successRate: 100,
+            avgResponseTime: 0
+        };
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWebSocket();
+            initialize3DVisualization();
+            initializeMetricsChart();
+            setupEventListeners();
+            startMetricsUpdater();
+        });
+
+        // WebSocket Connection Management
+        function initializeWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            try {
+                wsConnection = new WebSocket(wsUrl);
+                
+                wsConnection.onopen = function(event) {
+                    updateConnectionStatus(true);
+                    addToStream('WebSocket connected successfully', 'success');
+                };
+                
+                wsConnection.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                };
+                
+                wsConnection.onclose = function(event) {
+                    updateConnectionStatus(false);
+                    addToStream('WebSocket connection closed', 'error');
+                    
+                    // Attempt reconnection after 5 seconds
+                    setTimeout(initializeWebSocket, 5000);
+                };
+                
+                wsConnection.onerror = function(error) {
+                    updateConnectionStatus(false);
+                    addToStream('WebSocket error occurred', 'error');
+                };
+            } catch (error) {
+                console.error('WebSocket initialization failed:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        function handleWebSocketMessage(data) {
+            switch(data.type) {
+                case 'calculation_result':
+                    handleCalculationResult(data.data);
+                    break;
+                case 'metrics_update':
+                    handleMetricsUpdate(data.data);
+                    break;
+                default:
+                    console.log('Unknown message type:', data.type);
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusDot = document.getElementById('wsStatus');
+            const statusText = document.getElementById('wsStatusText');
+            
+            if (connected) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected';
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Disconnected';
+            }
+        }
+
+        // 3D Visualization with Three.js
+        function initialize3DVisualization() {
+            const container = document.getElementById('threeContainer');
+            
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 5;
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Create animated geometric visualization
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: 0x00ff88,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.7
+            });
+            cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+            
+            // Add floating data points
+            createDataPoints();
+            
+            // Add lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+            
+            // Start animation loop
+            animate3D();
+        }
+
+        function createDataPoints() {
+            const pointGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+            
+            for (let i = 0; i < 50; i++) {
+                const material = new THREE.MeshBasicMaterial({ 
+                    color: new THREE.Color().setHSL(Math.random(), 0.7, 0.6)
+                });
+                const point = new THREE.Mesh(pointGeometry, material);
+                
+                point.position.set(
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 10
+                );
+                
+                point.userData = {
+                    velocity: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.02,
+                        (Math.random() - 0.5) * 0.02,
+                        (Math.random() - 0.5) * 0.02
+                    )
+                };
+                
+                dataPoints.push(point);
+                scene.add(point);
+            }
+        }
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            
+            // Rotate main cube
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            
+            // Animate data points
+            dataPoints.forEach(point => {
+                point.position.add(point.userData.velocity);
+                
+                // Bounce off boundaries
+                if (Math.abs(point.position.x) > 5) point.userData.velocity.x *= -1;
+                if (Math.abs(point.position.y) > 5) point.userData.velocity.y *= -1;
+                if (Math.abs(point.position.z) > 5) point.userData.velocity.z *= -1;
+            });
+            
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('threeContainer');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // Metrics Chart with Chart.js
+        function initializeMetricsChart() {
+            const ctx = document.getElementById('metricsChart').getContext('2d');
+            
+            metricsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Calculations/sec',
+                        data: [],
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Success Rate %',
+                        data: [],
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            document.getElementById('calculateBtn').addEventListener('click', performCalculation);
+            
+            // Allow Enter key to trigger calculation
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    performCalculation();
+                }
+            });
+            
+            // Operation change handler
+            document.getElementById('operation').addEventListener('change', function() {
+                const operand2Input = document.getElementById('operand2');
+                const unaryOps = ['sqrt', 'abs', 'negate'];
+                
+                if (unaryOps.includes(this.value)) {
+                    operand2Input.disabled = true;
+                    operand2Input.style.opacity = '0.5';
+                } else {
+                    operand2Input.disabled = false;
+                    operand2Input.style.opacity = '1';
+                }
+            });
+        }
+
+        // Calculation Logic
+        async function performCalculation() {
+            const operation = document.getElementById('operation').value;
+            const operand1 = document.getElementById('operand1').value;
+            const operand2 = document.getElementById('operand2').value;
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            
+            if (!operand1.trim()) {
+                showError('Please enter the first operand');
+                return;
+            }
+            
+            const unaryOps = ['sqrt', 'abs', 'negate'];
+            if (!unaryOps.includes(operation) && !operand2.trim()) {
+                showError('Please enter the second operand for this operation');
+                return;
+            }
+            
+            const calculateBtn = document.getElementById('calculateBtn');
+            calculateBtn.disabled = true;
+            calculateBtn.textContent = 'Calculating...';
+            
+            try {
+                const startTime = performance.now();
+                
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        operation: operation,
+                        operand1: operand1,
+                        operand2: unaryOps.includes(operation) ? null : operand2,
+                        currency: fromCurrency
+                    })
+                });
+                
+                const responseTime = performance.now() - startTime;
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult(result, responseTime);
+                    addToStream(`✓ ${operation}(${operand1}${operand2 ? ', ' + operand2 : ''}) = ${result.result}`, 'success');
+                    
+                    // Update 3D visualization
+                    updateVisualization(result);
+                } else {
+                    showError(result.error || 'Calculation failed', result.healing_result);
+                    addToStream(`✗ Calculation failed: ${result.error}`, 'error');
+                }
+                
+                systemMetrics.calculations++;
+                if (!result.success) systemMetrics.errors++;
+                systemMetrics.successRate = ((systemMetrics.calculations - systemMetrics.errors) / systemMetrics.calculations * 100).toFixed(2);
+                systemMetrics.avgResponseTime = responseTime;
+                
+            } catch (error) {
+                showError('Network error: ' + error.message);
+                addToStream(`✗ Network error: ${error.message}`, 'error');
+            } finally {
+                calculateBtn.disabled = false;
+                calculateBtn.textContent = 'Calculate with Quantum Precision';
+            }
+        }
+
+        function showResult(result, responseTime) {
+            const resultHtml = `
+                <div class="result-display">
+                    <h4>✓ Calculation Successful</h4>
+                    <p><strong>Result:</strong> ${result.result}</p>
+                    <p><strong>Decimal Value:</strong> ${result.result_decimal}</p>
+                    <p><strong>Response Time:</strong> ${responseTime.toFixed(2)}ms</p>
+                    <p><strong>Calculation ID:</strong> ${result.metadata?.calculation_id}</p>
+                    <p><strong>Precision Used:</strong> ${result.metadata?.precision_used} decimals</p>
+                    <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                        <strong>Healing Suite Status:</strong><br>
+                        Confidence: ${(result.healing_info?.confidence_level * 100).toFixed(1)}%<br>
+                        Errors Detected: ${result.healing_info?.errors_detected}<br>
+                        Quality Score: ${(result.metadata?.quality_score * 100).toFixed(1)}%
+                    </div>
+                </div>
+            `;
+            document.getElementById('resultDisplay').innerHTML = resultHtml;
+        }
+
+        function showError(error, healingResult) {
+            const healingHtml = healingResult ? `
+                <div style="margin-top: 10px; font-size: 0.9rem;">
+                    <strong>Healing Suite™ Analysis:</strong><br>
+                    Error ID: ${healingResult.error_id}<br>
+                    Auto-fix Available: ${healingResult.auto_fix_available ? 'Yes' : 'No'}<br>
+                    Suggested Fix: ${healingResult.suggested_corrections?.join(', ') || 'None'}
+                </div>
+            ` : '';
+            
+            const errorHtml = `
+                <div class="error-display">
+                    <h4>✗ Calculation Error</h4>
+                    <p>${error}</p>
+                    ${healingHtml}
+                </div>
+            `;
+            document.getElementById('resultDisplay').innerHTML = errorHtml;
+        }
+
+        function addToStream(message, type = 'info') {
+            const stream = document.getElementById('calculationStream');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = { success: '#00ff88', error: '#ff4444', info: '#88aaff' };
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.style.color = colors[type];
+            messageDiv.innerHTML = `[${timestamp}] ${message}`;
+            
+            stream.appendChild(messageDiv);
+            stream.scrollTop = stream.scrollHeight;
+            
+            // Keep only last 100 messages
+            while (stream.children.length > 100) {
+                stream.removeChild(stream.firstChild);
+            }
+        }
+
+        function updateVisualization(result) {
+            // Add visual effect to 3D scene based on calculation
+            const resultValue = parseFloat(result.result_decimal);
+            const hue = (Math.abs(resultValue) % 360) / 360;
+            
+            // Change cube color based on result
+            cube.material.color.setHSL(hue, 0.7, 0.6);
+            
+            // Add particle effect for successful calculation
+            const particleGeometry = new THREE.SphereGeometry(0.02, 4, 4);
+            const particleMaterial = new THREE.MeshBasicMaterial({ 
+                color: new THREE.Color().setHSL(hue, 0.8, 0.7),
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            for (let i = 0; i < 10; i++) {
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                particle.position.copy(cube.position);
+                particle.userData = {
+                    velocity: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.1,
+                        (Math.random() - 0.5) * 0.1,
+                        (Math.random() - 0.5) * 0.1
+                    ),
+                    life: 100
+                };
+                scene.add(particle);
+                
+                // Remove particle after animation
+                setTimeout(() => {
+                    scene.remove(particle);
+                }, 2000);
+            }
+        }
+
+        function handleCalculationResult(data) {
+            addToStream(`WebSocket: Calculation ${data.metadata?.calculation_id} completed`, 'success');
+        }
+
+        function handleMetricsUpdate(data) {
+            // Update metrics display
+            const time = new Date().toLocaleTimeString();
+            
+            if (metricsChart.data.labels.length > 20) {
+                metricsChart.data.labels.shift();
+                metricsChart.data.datasets[0].data.shift();
+                metricsChart.data.datasets[1].data.shift();
+            }
+            
+            metricsChart.data.labels.push(time);
+            metricsChart.data.datasets[0].data.push(data.calculations_per_second);
+            metricsChart.data.datasets[1].data.push(data.success_rate * 100);
+            metricsChart.update('none');
+        }
+
+        function startMetricsUpdater() {
+            setInterval(async () => {
+                try {
+                    const response = await fetch('/metrics');
+                    const metrics = await response.json();
+                    
+                    // Update metrics display
+                    const time = new Date().toLocaleTimeString();
+                    
+                    if (metricsChart.data.labels.length > 20) {
+                        metricsChart.data.labels.shift();
+                        metricsChart.data.datasets[0].data.shift();
+                        metricsChart.data.datasets[1].data.shift();
+                    }
+                    
+                    metricsChart.data.labels.push(time);
+                    metricsChart.data.datasets[0].data.push(metrics.calculations_per_second);
+                    metricsChart.data.datasets[1].data.push(metrics.success_rate * 100);
+                    metricsChart.update('none');
+                    
+                } catch (error) {
+                    console.error('Failed to fetch metrics:', error);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
