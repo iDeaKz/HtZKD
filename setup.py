@@ -25,7 +25,7 @@ setup(
     "numpy==1.24.3",
     "plotly==5.15.0",
     "requests==2.31.0",
-    "setuptools>=65.5.0",
+    "setuptools>=69.0.0",
     "SQLAlchemy==1.4.47",
     "psycopg2-binary==2.9.6",
     "alembic==1.11.1",
@@ -69,4 +69,5 @@ setup(
     ],
     python_requires='>=3.8',
 )
+
 
