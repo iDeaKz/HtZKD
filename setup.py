@@ -16,31 +16,32 @@ setup(
     packages=find_packages(),
     include_package_data=True,  # Includes files from MANIFEST.in
     install_requires=[
-        "dash[testing]==2.9.3"
-        "dash==2.9.3"
-        "dash-bootstrap-components==1.3.1"
-        "flask>=2.3.2"
-        "flask-sqlalchemy>=3.0.0"
-        "pandas==1.5.3"
-        "numpy==1.24.3"
-        "plotly==5.15.0"
-        "requests==2.31.0"
-        "setuptools>=65.5.0"
-        "SQLAlchemy==1.4.47"
-        "psycopg2-binary==2.9.6"
-        "alembic==1.11.1"
-        "flask-login>=0.6.3"
-        "werkzeug>=2.3.6"
-        "bcrypt==4.0.1"
-        "python-dotenv==1.0.0"
-        "pytest>=7.4.0"
-        "pytest-cov==4.0.0"
-        "coverage==7.3.1"
-        "celery==5.3.1"
-        "redis==4.5.5"
-        "bleak>=0.22.0"
-        "psutil>=5.9.0"
-        "openpyxl>=3.1.2"
+    "dash[testing]==2.9.3",
+    "dash==2.9.3",
+    "dash-bootstrap-components==1.3.1",
+    "flask>=2.3.2",
+    "flask-sqlalchemy>=3.0.0",
+    "pandas==1.5.3",
+    "numpy==1.24.3",
+    "plotly==5.15.0",
+    "requests==2.31.0",
+    "setuptools>=65.5.0",
+    "SQLAlchemy==1.4.47",
+    "psycopg2-binary==2.9.6",
+    "alembic==1.11.1",
+    "flask-login>=0.6.3",
+    "werkzeug>=2.3.6",
+    "bcrypt==4.0.1",
+    "python-dotenv==1.0.0",
+    "pytest>=7.4.0",
+    "pytest-cov==4.0.0",
+    "coverage==7.3.1",
+    "celery==5.3.1",
+    "redis==4.5.5",
+    "bleak>=0.22.0",
+    "psutil>=5.9.0",
+    "openpyxl>=3.1.2",
+]
 
         
 
@@ -68,3 +69,4 @@ setup(
     ],
     python_requires='>=3.8',
 )
+
