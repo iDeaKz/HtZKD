@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -23,12 +22,12 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set Up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Upgrade pip and setuptools
-      run: python -m pip install --upgrade pip setuptools
+    - name: Upgrade pip, setuptools, wheel
+      run: python -m pip install --upgrade pip setuptools wheel
 
     - name: Cache Python Dependencies
       uses: actions/cache@v3
@@ -40,7 +39,6 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install flake8 pytest pytest-cov pytest-xdist black isort bleak==0.21.3
 
