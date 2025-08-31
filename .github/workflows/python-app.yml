@@ -27,6 +27,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Upgrade pip and setuptools
+      run: python -m pip install --upgrade pip setuptools
+
     - name: Cache Python Dependencies
       uses: actions/cache@v3
       with:
@@ -34,9 +37,6 @@ jobs:
         key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-${{ matrix.python-version }}-
-   
-    - name: Upgrade pip and setuptools
-      run: python -m pip install --upgrade pip setuptools
 
     - name: Install Dependencies
       run: |
