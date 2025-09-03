@@ -1,0 +1,42 @@
+# 3D Paint Studio Backend Requirements
+
+# Core Web Framework
+fastapi>=0.104.0,<1.0.0
+uvicorn[standard]>=0.24.0,<1.0.0
+python-multipart>=0.0.6
+
+# Image Processing
+opencv-python>=4.8.0,<5.0.0
+Pillow>=10.0.0,<11.0.0
+numpy>=1.24.0,<2.0.0
+
+# GPU and Performance
+psutil>=5.9.0,<6.0.0
+# pynvml>=11.5.0  # Optional for NVIDIA GPU monitoring
+
+# Data Validation and Serialization
+pydantic>=2.4.0,<3.0.0
+
+# Async Support
+asyncio-throttle>=1.0.2
+aiofiles>=23.0.0
+
+# File Format Support
+# psd-tools>=1.9.0  # Optional for PSD support
+
+# Monitoring and Logging
+prometheus-client>=0.17.0
+
+# Development and Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0  # For testing FastAPI
+
+# Optional: Database support
+# sqlalchemy>=2.0.0
+# asyncpg>=0.28.0  # For PostgreSQL
+# aiosqlite>=0.19.0  # For SQLite
+
+# Optional: Real-time features
+# websockets>=12.0
+# redis>=5.0.0

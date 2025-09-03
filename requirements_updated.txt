@@ -1,0 +1,25 @@
+# Original dashboard requirements
+dash[testing]==2.9.3
+pytest==8.3.3
+pytest-cov==6.0.0
+pytest-xdist==3.6.1
+selenium==4.10.0
+openpyxl==3.1.2
+pandas==1.5.3
+numpy==1.24.3
+flask==2.3.2
+setuptools==69.0.0
+
+# 3D Paint Studio Backend Requirements
+fastapi>=0.104.0,<1.0.0
+uvicorn[standard]>=0.24.0,<1.0.0
+python-multipart>=0.0.6
+opencv-python>=4.8.0,<5.0.0
+Pillow>=10.0.0,<11.0.0
+psutil>=5.9.0,<6.0.0
+pydantic>=2.4.0,<3.0.0
+asyncio-throttle>=1.0.2
+aiofiles>=23.0.0
+prometheus-client>=0.17.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0

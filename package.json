@@ -1,0 +1,48 @@
+{
+  "name": "3d-paint-studio",
+  "version": "1.0.0",
+  "description": "Advanced 3D Paint Application with Real-time Graphics",
+  "main": "frontend/js/main.js",
+  "scripts": {
+    "start": "python backend/main.py",
+    "dev": "python backend/main.py --reload",
+    "test": "pytest tests/",
+    "serve": "python -m http.server 8080 --directory frontend",
+    "install-backend": "pip install -r backend/requirements.txt",
+    "install-all": "pip install -r requirements_updated.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iDeaKz/HtZKD.git"
+  },
+  "keywords": [
+    "3d-graphics",
+    "webgl",
+    "paint-application",
+    "canvas",
+    "real-time-rendering",
+    "gpu-acceleration",
+    "brush-engine",
+    "image-processing"
+  ],
+  "author": "iDeaKz",
+  "license": "Apache-2.0",
+  "engines": {
+    "python": ">=3.8"
+  },
+  "dependencies": {
+    "three": "^0.158.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "babel-loader": "^9.1.3",
+    "@babel/core": "^7.23.3",
+    "@babel/preset-env": "^7.23.3"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
